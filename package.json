@@ -31,5 +31,6 @@
   "homepage": "https://github.com/itsnubix/react-native-video-controls#readme",
   "directories": {
     "test": "test"
-  }
+  },
+  "devDependencies": {}
 }
