@@ -30,7 +30,8 @@ export default class VideoPlayer extends Component {
         title:                          '',
         rate:                           1,
         isFullscreen:                   false,
-        posterImage:                    null
+        posterImage:                    null,
+        viewCount:                      0,
     };
 
     constructor( props ) {
@@ -65,7 +66,8 @@ export default class VideoPlayer extends Component {
             currentTime: 0,
             error: false,
             duration: 0,
-            posterImage: null
+            posterImage: null,
+            viewCount: 0
         };
 
         /**
@@ -77,6 +79,7 @@ export default class VideoPlayer extends Component {
             repeat: this.props.repeat,
             title: this.props.title,
             posterImage: this.props.posterImage,
+            viewCount: this.props.viewCount
         };
 
         /**
@@ -874,7 +877,7 @@ export default class VideoPlayer extends Component {
 
         const backControl = this.props.disableBack ? this.renderNullControl() : this.renderBack();
         const volumeControl = this.props.disableVolume ? this.renderNullControl() : this.renderVolume();
-        const fullscreenControl = this.props.disableFullscreen ? this.renderNullControl() : this.renderFullscreen();
+        const viewCountControl = this.props.disableViewCount ? this.renderNullControl() : this.renderViewCount();
 
         return(
           <Animated.View style={[
@@ -892,11 +895,22 @@ export default class VideoPlayer extends Component {
           {volumeControl}
         {backControl}
     <View style={styles.controls.pullRight}>
-          {fullscreenControl}
+          {viewCountControl}
           </View>
           </SafeAreaView>
           </ImageBackground>
           </Animated.View>
+    );
+    }
+
+    renderViewCount() {
+        return (
+          <View style={{flexDirection: "row", alignItems: "center"}}>
+    <Image source={require('./assets/img/ic_view.png')} style={{width: 16, height: 16, marginTop: 1, resizeMode: "contain", tintColor: "#ffffff"}}/>
+        <Text style={ styles.controls.viewCountText }>
+          { this.props.viewCount }
+          </Text>
+          </View>
     );
     }
 
@@ -955,7 +969,7 @@ export default class VideoPlayer extends Component {
 
         let source = this.state.isFullscreen === true ? require( './assets/img/ic_shrink.png' ) : require( './assets/img/ic_expand.png' );
         return this.renderControl(
-          <Image source={ source } style={{marginTop: -3, width: 18, height: 18}}/>,
+          <Image source={ source } style={{marginTop: -2, width: 15, height: 15}}/>,
         this.methods.toggleFullscreen,
           styles.controls.fullscreen
     );
@@ -969,6 +983,7 @@ export default class VideoPlayer extends Component {
         const timerControl = this.props.disableTimer ? this.renderNullControl() : this.renderTimer();
         const seekbarControl = this.props.disableSeekbar ? this.renderNullControl() : this.renderSeekbar();
         const playPauseControl = this.props.disablePlayPause ? this.renderNullControl() : this.renderPlayPause();
+        const fullscreenControl = this.props.disableFullscreen ? this.renderNullControl() : this.renderFullscreen();
 
         return(
           <Animated.View style={[
@@ -987,8 +1002,11 @@ export default class VideoPlayer extends Component {
         style={[styles.controls.row, styles.controls.bottomControlGroup]}>
         {playPauseControl}
         {this.renderTitle()}
+    <View style={{flexDirection:"row", alignItems: "center"}}>
         {timerControl}
-    </SafeAreaView>
+        {fullscreenControl}
+    </View>
+        </SafeAreaView>
         </ImageBackground>
         </Animated.View>
     );
@@ -1071,12 +1089,17 @@ export default class VideoPlayer extends Component {
      */
     renderTimer() {
 
-        return this.renderControl(
+        // return this.renderControl(
+        //   <Text style={ styles.controls.timerText }>
+        //   { this.calculateTime() }
+        //   </Text>,
+        // this.methods.toggleTimer,
+        //   styles.controls.timer
+        // );
+        return (
           <Text style={ styles.controls.timerText }>
           { this.calculateTime() }
-          </Text>,
-        this.methods.toggleTimer,
-          styles.controls.timer
+          </Text>
     );
     }
 
@@ -1278,8 +1301,8 @@ const styles = {
             alignSelf: 'stretch',
             alignItems: 'center',
             justifyContent: 'space-between',
-            marginLeft: 12,
-            marginRight: 12,
+            marginLeft: 6,
+            marginRight: 6,
             marginBottom: 0,
         },
         volume: {
@@ -1304,14 +1327,22 @@ const styles = {
             textAlign: 'center',
         },
         timer: {
-            width: 80,
-            marginRight: -3
+            marginRight: -3,
+            padding: 0
         },
         timerText: {
             backgroundColor: 'transparent',
             color: '#FFF',
             fontSize: 12,
             textAlign: 'right',
+        },
+        viewCountText: {
+            backgroundColor: 'transparent',
+            color: '#FFF',
+            fontSize: 13,
+            textAlign: 'right',
+            marginRight: 18,
+            marginLeft: 5
         },
     }),
     volume: StyleSheet.create({
@@ -1325,7 +1356,7 @@ const styles = {
             width: 100,
         },
         track: {
-            backgroundColor: '#333',
+            backgroundColor: 'rgba(89, 89, 89, 0.7)',
             height: 2,
             marginLeft: 7,
         },
@@ -1362,7 +1393,7 @@ const styles = {
             marginRight: 20
         },
         track: {
-            backgroundColor: '#333',
+            backgroundColor: 'rgba(89, 89, 89, 0.7)',
             height: 3,
             position: 'relative',
             top: 25,
