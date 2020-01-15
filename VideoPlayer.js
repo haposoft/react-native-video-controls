@@ -453,6 +453,12 @@ export default class VideoPlayer extends Component {
         this.setState( state );
     }
 
+    exitFullScreen() {
+        let state = this.state;
+        state.isFullscreen = false;
+        this.setState( state );
+    }
+
     /**
      * Toggle playing state on <Video> component
      */
