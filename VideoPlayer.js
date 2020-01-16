@@ -32,6 +32,7 @@ export default class VideoPlayer extends Component {
         isFullscreen:                   false,
         posterImage:                    null,
         viewCount:                      0,
+        isLiveVideo:                    false
     };
 
     constructor( props ) {
@@ -67,7 +68,8 @@ export default class VideoPlayer extends Component {
             error: false,
             duration: 0,
             posterImage: null,
-            viewCount: 0
+            viewCount: 0,
+            isLiveVideo: false,
         };
 
         /**
@@ -79,7 +81,8 @@ export default class VideoPlayer extends Component {
             repeat: this.props.repeat,
             title: this.props.title,
             posterImage: this.props.posterImage,
-            viewCount: this.props.viewCount
+            viewCount: this.props.viewCount,
+            isLiveVideo: this.props.isLiveVideo
         };
 
         /**
@@ -263,11 +266,11 @@ export default class VideoPlayer extends Component {
 
         if ( delta < 300 ) {
             // this.methods.toggleFullscreen();
-            if (state.resizeMode === 'contain') {
-                state.resizeMode = 'cover';
-            } else {
-                state.resizeMode = 'contain';
-            };
+            // if (state.resizeMode === 'contain') {
+            //     state.resizeMode = 'cover';
+            // } else {
+            //     state.resizeMode = 'contain';
+            // };
         }
 
         this.methods.toggleControls();
@@ -296,9 +299,11 @@ export default class VideoPlayer extends Component {
      * Default is 15s
      */
     setControlTimeout() {
-        this.player.controlTimeout = setTimeout( ()=> {
-            this._hideControls();
-        }, this.player.controlTimeoutDelay );
+        this.player.controlTimeout = setTimeout(() => {
+            if (!this.state.paused) {
+                this._hideControls();
+            }
+        }, this.player.controlTimeoutDelay);
     }
 
     /**
@@ -312,8 +317,8 @@ export default class VideoPlayer extends Component {
      * Reset the timer completely
      */
     resetControlTimeout() {
-        this.clearControlTimeout();
-        this.setControlTimeout();
+        // this.clearControlTimeout();
+        // this.setControlTimeout();
     }
 
     /**
@@ -463,17 +468,25 @@ export default class VideoPlayer extends Component {
      * Toggle playing state on <Video> component
      */
     _togglePlayPause() {
-        let state = this.state;
-        state.paused = !state.paused;
+        // let state = this.state;
+        // state.paused = !state.paused;
+        // console.log(state.paused)
 
-        if (state.paused) {
-            typeof this.events.onPause === 'function' && this.events.onPause();
-        }
-        else {
-            typeof this.events.onPlay === 'function' && this.events.onPlay();
-        }
+        let _this = this;
+        setTimeout(function() {
 
-        this.setState( state );
+            _this.setState({
+                paused: !_this.state.paused
+            }, () => {
+                if (_this.state.paused) {
+                    typeof _this.events.onPause === 'function' && _this.events.onPause();
+                } else {
+                    typeof _this.events.onPlay === 'function' && _this.events.onPlay();
+                }
+            });
+        }, 100);
+
+        // this.setState( state );
     }
 
     /**
@@ -506,12 +519,18 @@ export default class VideoPlayer extends Component {
      * or duration. Formatted to look as 00:00.
      */
     calculateTime() {
-        if ( this.state.showTimeRemaining ) {
-            const time = this.state.duration - this.state.currentTime;
-            return `-${ this.formatTime( time ) }`;
-        }
-
+        // if ( this.state.showTimeRemaining ) {
+        //     const time = this.state.duration - this.state.currentTime;
+        //     return `-${ this.formatTime( time ) }`;
+        // }
         return this.formatTime( this.state.currentTime );
+    }
+
+    totalTime() {
+        if (this.props.isLiveVideo) {
+            return "Trực tiếp"
+        }
+        return this.formatTime( this.state.duration );
     }
 
     /**
@@ -521,16 +540,18 @@ export default class VideoPlayer extends Component {
      * @return {string} formatted time string in mm:ss format
      */
     formatTime( time = 0 ) {
-        const symbol = this.state.showRemainingTime ? '-' : '';
-        time = Math.min(
-          Math.max( time, 0 ),
-          this.state.duration
-        );
+        // const symbol = this.state.showRemainingTime ? '-' : '';
+        if (this.state.duration !== 0) {
+            time = Math.min(
+              Math.max(time, 0),
+              this.state.duration
+            );
+        }
 
         const formattedMinutes = _.padStart( Math.floor( time / 60 ).toFixed( 0 ), 2, 0 );
         const formattedSeconds = _.padStart( Math.floor( time % 60 ).toFixed( 0 ), 2 , 0 );
 
-        return `${ symbol }${ formattedMinutes }:${ formattedSeconds }`;
+        return `${ formattedMinutes }:${ formattedSeconds }`;
     }
 
     /**
@@ -721,6 +742,15 @@ export default class VideoPlayer extends Component {
         this.mounted = true;
 
         this.setState( state );
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if (!prevState.paused && this.state.paused) {
+            this.setState({
+                showControls: true
+            })
+            this.showControlAnimation();
+        }
     }
 
     /**
@@ -987,6 +1017,7 @@ export default class VideoPlayer extends Component {
     renderBottomControls() {
 
         const timerControl = this.props.disableTimer ? this.renderNullControl() : this.renderTimer();
+        const totalTimerControl = this.props.disableTimer ? this.renderNullControl() : this.renderTotalTimer();
         const seekbarControl = this.props.disableSeekbar ? this.renderNullControl() : this.renderSeekbar();
         const playPauseControl = this.props.disablePlayPause ? this.renderNullControl() : this.renderPlayPause();
         const fullscreenControl = this.props.disableFullscreen ? this.renderNullControl() : this.renderFullscreen();
@@ -1006,10 +1037,11 @@ export default class VideoPlayer extends Component {
           { seekbarControl }
           <SafeAreaView
         style={[styles.controls.row, styles.controls.bottomControlGroup]}>
-        {playPauseControl}
-        {this.renderTitle()}
-    <View style={{flexDirection:"row", alignItems: "center"}}>
         {timerControl}
+        {playPauseControl}
+        {/*this.renderTitle()*/}
+    <View style={{flexDirection:"row", alignItems: "center"}}>
+        {totalTimerControl}
         {fullscreenControl}
     </View>
         </SafeAreaView>
@@ -1053,16 +1085,35 @@ export default class VideoPlayer extends Component {
     );
     }
 
+    renderPlayButton() {
+        let source = this.state.paused === true ? require( './assets/img/play.png' ) : require( './assets/img/pause.png' );
+        let scale = this.state.paused === true ? 1 : 0.9
+        return (
+          <View style={{width: 100, height: 100, position: "absolute", top: "50%", left: "50%", marginTop: -50, marginLeft: -50}}>
+        { this.state.showControls && !this.state.loading &&
+        <TouchableOpacity underlayColor="transparent" onPress={()=>{
+            this.methods.togglePlayPause(); this.resetControlTimeout();
+        }}
+            style={{width: "100%", height: "100%", justifyContent: "center", alignItems: "center"}}>
+        <Image style={{width: 28, height: 28, resizeMode: "contain", transform: [{ scaleX: scale}, { scaleY: scale }]}} source={ source }/>
+        </TouchableOpacity>
+        }
+    </View>
+    )
+    }
+
     /**
      * Render the play/pause button and show the respective icon
      */
     renderPlayPause() {
 
         let source = this.state.paused === true ? require( './assets/img/play.png' ) : require( './assets/img/pause.png' );
-        return this.renderControl(
-          <Image source={ source }/>,
-        this.methods.togglePlayPause,
-          styles.controls.playPause
+        // return this.renderControl(
+        //   <Image source={ source }/>,
+        // this.methods.togglePlayPause,
+        //   styles.controls.playPause
+        return (
+          <View></View>
     );
     }
 
@@ -1091,9 +1142,9 @@ export default class VideoPlayer extends Component {
     }
 
     /**
-     * Show our timer.
+     * Show our total timer.
      */
-    renderTimer() {
+    renderTotalTimer() {
 
         // return this.renderControl(
         //   <Text style={ styles.controls.timerText }>
@@ -1102,6 +1153,18 @@ export default class VideoPlayer extends Component {
         // this.methods.toggleTimer,
         //   styles.controls.timer
         // );
+        return (
+          <Text style={ styles.controls.timerTotalText }>
+          { this.totalTime() }
+          </Text>
+    );
+    }
+
+    /**
+     * Show our timer.
+     */
+    renderTimer() {
+
         return (
           <Text style={ styles.controls.timerText }>
           { this.calculateTime() }
@@ -1182,6 +1245,8 @@ export default class VideoPlayer extends Component {
         onError={ this.events.onError }
         onLoad={ this.events.onLoad }
         onEnd={ this.events.onEnd }
+        onPlay={ this.events.onPlay }
+        onPause={ this.events.onPause }
 
         style={[ styles.player.video, this.styles.videoStyle ]}
 
@@ -1192,6 +1257,7 @@ export default class VideoPlayer extends Component {
         { this.renderTopControls() }
         { this.renderLoader() }
         { this.renderBottomControls() }
+        { this.renderPlayButton() }
     </View>
         </TouchableWithoutFeedback>
     );
@@ -1320,7 +1386,7 @@ const styles = {
         playPause: {
             position: 'relative',
             width: 42,
-            zIndex: 0
+            zIndex: 0,
         },
         title: {
             alignItems: 'flex-start',
@@ -1336,11 +1402,18 @@ const styles = {
             marginRight: -3,
             padding: 0
         },
-        timerText: {
+        timerTotalText: {
             backgroundColor: 'transparent',
             color: '#FFF',
             fontSize: 12,
             textAlign: 'right',
+        },
+        timerText: {
+            backgroundColor: 'transparent',
+            color: '#FFF',
+            fontSize: 12,
+            textAlign: 'left',
+            marginLeft: 16
         },
         viewCountText: {
             backgroundColor: 'transparent',
