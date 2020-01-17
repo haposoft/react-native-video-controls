@@ -541,7 +541,7 @@ export default class VideoPlayer extends Component {
      */
     formatTime( time = 0 ) {
         // const symbol = this.state.showRemainingTime ? '-' : '';
-        if (this.state.duration !== 0) {
+        if (this.state.duration > 0) {
             time = Math.min(
               Math.max(time, 0),
               this.state.duration
