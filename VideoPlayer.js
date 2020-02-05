@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Video from 'react-native-video';
+import Video from 'react-native-video-with-ads';
 import {
     TouchableWithoutFeedback,
     TouchableOpacity,
@@ -24,6 +24,7 @@ export default class VideoPlayer extends Component {
         showOnStart:                    true,
         resizeMode:                     'contain',
         paused:                         false,
+        adUrl: "https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator=",
         repeat:                         false,
         volume:                         1,
         muted:                          false,
@@ -46,6 +47,7 @@ export default class VideoPlayer extends Component {
             // Video
             resizeMode: this.props.resizeMode,
             paused: this.props.paused,
+            adUrl: this.props.adUrl,
             muted: this.props.muted,
             volume: this.props.volume,
             rate: this.props.rate,
@@ -156,6 +158,10 @@ export default class VideoPlayer extends Component {
             videoStyle: this.props.videoStyle || {},
             containerStyle: this.props.style || {}
         };
+
+        this.onAdsLoaded = this.onAdsLoaded.bind(this);
+        this.onAdStarted = this.onAdStarted.bind(this);
+        this.onAdsComplete = this.onAdsComplete.bind(this);
     }
 
 
@@ -458,6 +464,20 @@ export default class VideoPlayer extends Component {
         this.setState( state );
     }
 
+    onAdsLoaded() {
+        setTimeout(() => {
+          this.player.ref.startAds();
+        }, 10000);
+    }
+    
+    onAdStarted() {
+        this.setState({paused: true});
+    }
+    
+    onAdsComplete() {
+        this.setState({paused: false});
+    }
+
     exitFullScreen() {
         let state = this.state;
         state.isFullscreen = false;
@@ -740,6 +760,7 @@ export default class VideoPlayer extends Component {
         this.setVolumePosition( position );
         state.volumeOffset = position;
         this.mounted = true;
+        this.player.ref.requestAds(this.state.adUrl);
 
         this.setState( state );
     }
