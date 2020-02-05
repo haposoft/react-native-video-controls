@@ -1268,6 +1268,9 @@ export default class VideoPlayer extends Component {
         onEnd={ this.events.onEnd }
         onPlay={ this.events.onPlay }
         onPause={ this.events.onPause }
+        onAdsLoaded={this.onAdsLoaded}
+        onAdStarted={this.onAdStarted}
+        onAdsComplete={this.onAdsComplete}
 
         style={[ styles.player.video, this.styles.videoStyle ]}
 
