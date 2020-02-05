@@ -1258,6 +1258,7 @@ export default class VideoPlayer extends Component {
         resizeMode={ this.state.resizeMode }
         volume={ this.state.volume }
         paused={ this.state.paused }
+        adUrl={ this.state.adUrl }
         muted={ this.state.muted }
         rate={ this.state.rate }
 
