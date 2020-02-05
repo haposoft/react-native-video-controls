@@ -23,7 +23,7 @@
   },
   "peerDependencies": {
     "react-native": ">=0.46.0",
-    "react-native-video": "^2.0.0"
+    "react-native-video-with-ads": "git+https://github.com/haposoft/react-native-video-with-ads.git"
   },
   "bugs": {
     "url": "https://github.com/itsnubix/react-native-video-controls/issues"
