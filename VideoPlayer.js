@@ -1246,44 +1246,44 @@ export default class VideoPlayer extends Component {
      */
     render() {
         return (
-          <TouchableWithoutFeedback
-        onPress={ this.events.onScreenTouch }
-        style={[ styles.player.container, this.styles.containerStyle ]}
-    >
-    <View style={[ styles.player.container, this.styles.containerStyle ]}>
-    <Video
-        { ...this.props }
-        ref={ videoPlayer => this.player.ref = videoPlayer }
+            <TouchableWithoutFeedback
+                onPress={ this.events.onScreenTouch }
+                style={[ styles.player.container, this.styles.containerStyle ]}
+            >
+            <View style={[ styles.player.container, this.styles.containerStyle ]}>
+                <Video
+                    { ...this.props }
+                    ref={ videoPlayer => this.player.ref = videoPlayer }
 
-        resizeMode={ this.state.resizeMode }
-        volume={ this.state.volume }
-        paused={ this.state.paused }
-        adUrl={ this.state.adUrl }
-        muted={ this.state.muted }
-        rate={ this.state.rate }
+                    resizeMode={ this.state.resizeMode }
+                    volume={ this.state.volume }
+                    paused={ this.state.paused }
+                    adUrl={ this.props.adUrl }
+                    muted={ this.state.muted }
+                    rate={ this.state.rate }
 
-        onLoadStart={ this.events.onLoadStart }
-        onProgress={ this.events.onProgress }
-        onError={ this.events.onError }
-        onLoad={ this.events.onLoad }
-        onEnd={ this.events.onEnd }
-        onPlay={ this.events.onPlay }
-        onPause={ this.events.onPause }
-        onAdsLoaded={this.onAdsLoaded}
-        onAdStarted={this.onAdStarted}
-        onAdsComplete={this.onAdsComplete}
+                    onLoadStart={ this.events.onLoadStart }
+                    onProgress={ this.events.onProgress }
+                    onError={ this.events.onError }
+                    onLoad={ this.events.onLoad }
+                    onEnd={ this.events.onEnd }
+                    onPlay={ this.events.onPlay }
+                    onPause={ this.events.onPause }
+                    onAdsLoaded={ this.onAdsLoaded }
+                    onAdStarted={ this.onAdStarted }
+                    onAdsComplete={ this.onAdsComplete }
 
-        style={[ styles.player.video, this.styles.videoStyle ]}
+                    style={[ styles.player.video, this.styles.videoStyle ]}
 
-        source={ this.props.source }
-        />
-        { this.renderPoster() }
-        { this.renderError() }
-        { this.renderTopControls() }
-        { this.renderLoader() }
-        { this.renderBottomControls() }
-        { this.renderPlayButton() }
-    </View>
+                    source={ this.props.source }
+                />
+                { this.renderPoster() }
+                { this.renderError() }
+                { this.renderTopControls() }
+                { this.renderLoader() }
+                { this.renderBottomControls() }
+                { this.renderPlayButton() }
+            </View>
         </TouchableWithoutFeedback>
     );
     }
