@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Video from 'react-native-video-with-ads';
+import Video from 'react-native-video';
 import {
     TouchableWithoutFeedback,
     TouchableOpacity,
@@ -24,7 +24,6 @@ export default class VideoPlayer extends Component {
         showOnStart:                    true,
         resizeMode:                     'contain',
         paused:                         false,
-        adUrl: "https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dlinear&correlator=",
         repeat:                         false,
         volume:                         1,
         muted:                          false,
@@ -47,7 +46,6 @@ export default class VideoPlayer extends Component {
             // Video
             resizeMode: this.props.resizeMode,
             paused: this.props.paused,
-            adUrl: this.props.adUrl,
             muted: this.props.muted,
             volume: this.props.volume,
             rate: this.props.rate,
@@ -158,10 +156,6 @@ export default class VideoPlayer extends Component {
             videoStyle: this.props.videoStyle || {},
             containerStyle: this.props.style || {}
         };
-
-        this.onAdsLoaded = this.onAdsLoaded.bind(this);
-        this.onAdStarted = this.onAdStarted.bind(this);
-        this.onAdsComplete = this.onAdsComplete.bind(this);
     }
 
 
@@ -464,20 +458,6 @@ export default class VideoPlayer extends Component {
         this.setState( state );
     }
 
-    onAdsLoaded() {
-        setTimeout(() => {
-          this.player.ref.startAds();
-        }, 10000);
-    }
-    
-    onAdStarted() {
-        this.setState({paused: true});
-    }
-    
-    onAdsComplete() {
-        this.setState({paused: false});
-    }
-
     exitFullScreen() {
         let state = this.state;
         state.isFullscreen = false;
@@ -548,9 +528,24 @@ export default class VideoPlayer extends Component {
 
     totalTime() {
         if (this.props.isLiveVideo) {
-            return "Trực tiếp"
+            return (
+                <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    marginRight: 5,
+                    marginLeft: 10,
+                }}>
+                    <View style={styles.controls.redDot}/>
+                    <Text style={styles.controls.liveText}>Trực tiếp</Text>
+                </View>
+            )
+        } else {
+            return (
+                <Text style={[styles.controls.timerTotalText, { textAlign: this.props.isLiveVideo ? 'left' : 'right' }]}>
+                    {this.formatTime(this.state.duration)}
+                </Text>
+            );
         }
-        return this.formatTime( this.state.duration );
     }
 
     /**
@@ -760,7 +755,6 @@ export default class VideoPlayer extends Component {
         this.setVolumePosition( position );
         state.volumeOffset = position;
         this.mounted = true;
-        this.player.ref.requestAds(this.state.adUrl);
 
         this.setState( state );
     }
@@ -1027,7 +1021,7 @@ export default class VideoPlayer extends Component {
         let source = this.state.isFullscreen === true ? require( './assets/img/ic_shrink.png' ) : require( './assets/img/ic_expand.png' );
         return this.renderControl(
           <Image source={ source } style={{marginTop: -2, width: 15, height: 15}}/>,
-        this.methods.toggleFullscreen,
+          this.methods.toggleFullscreen,
           styles.controls.fullscreen
     );
     }
@@ -1044,30 +1038,26 @@ export default class VideoPlayer extends Component {
         const fullscreenControl = this.props.disableFullscreen ? this.renderNullControl() : this.renderFullscreen();
 
         return(
-          <Animated.View style={[
-              styles.controls.bottom,
-        {
-            opacity: this.animations.bottomControl.opacity,
-              marginBottom: this.animations.bottomControl.marginBottom,
-        }
-    ]}>
-    <ImageBackground
-        source={ require( './assets/img/bottom-vignette.png' ) }
-        style={[ styles.controls.column ]}
-        imageStyle={[ styles.controls.vignette ]}>
-          { seekbarControl }
-          <SafeAreaView
-        style={[styles.controls.row, styles.controls.bottomControlGroup]}>
-        {timerControl}
-        {playPauseControl}
-        {/*this.renderTitle()*/}
-    <View style={{flexDirection:"row", alignItems: "center"}}>
-        {totalTimerControl}
-        {fullscreenControl}
-    </View>
-        </SafeAreaView>
-        </ImageBackground>
-        </Animated.View>
+            <Animated.View style={[
+                styles.controls.bottom,{
+                opacity: this.animations.bottomControl.opacity,
+                marginBottom: this.animations.bottomControl.marginBottom,
+            }]}>
+                <ImageBackground
+                    source={ require( './assets/img/bottom-vignette.png' ) }
+                    style={[ styles.controls.column ]}
+                    imageStyle={[ styles.controls.vignette ]}>
+                    { seekbarControl }
+                    <SafeAreaView style={[styles.controls.row, styles.controls.bottomControlGroup]}>
+                        {timerControl}
+                        {playPauseControl}
+                        <View style={{flexDirection:"row", alignItems: "center", flex: 1}}>
+                            {totalTimerControl}
+                            {fullscreenControl}
+                        </View>
+                    </SafeAreaView>
+                </ImageBackground>
+            </Animated.View>
     );
     }
 
@@ -1166,26 +1156,20 @@ export default class VideoPlayer extends Component {
      * Show our total timer.
      */
     renderTotalTimer() {
-
-        // return this.renderControl(
-        //   <Text style={ styles.controls.timerText }>
-        //   { this.calculateTime() }
-        //   </Text>,
-        // this.methods.toggleTimer,
-        //   styles.controls.timer
-        // );
         return (
-          <Text style={ styles.controls.timerTotalText }>
-          { this.totalTime() }
-          </Text>
-    );
+            <View style={{flex: 1}}>
+                {this.totalTime()}
+            </View>
+        );
     }
 
     /**
      * Show our timer.
      */
     renderTimer() {
-
+        if (this.props.isLiveVideo) {
+          return null 
+        }
         return (
           <Text style={ styles.controls.timerText }>
           { this.calculateTime() }
@@ -1246,44 +1230,40 @@ export default class VideoPlayer extends Component {
      */
     render() {
         return (
-            <TouchableWithoutFeedback
-                onPress={ this.events.onScreenTouch }
-                style={[ styles.player.container, this.styles.containerStyle ]}
-            >
-            <View style={[ styles.player.container, this.styles.containerStyle ]}>
-                <Video
-                    { ...this.props }
-                    ref={ videoPlayer => this.player.ref = videoPlayer }
+          <TouchableWithoutFeedback
+        onPress={ this.events.onScreenTouch }
+        style={[ styles.player.container, this.styles.containerStyle ]}
+    >
+    <View style={[ styles.player.container, this.styles.containerStyle ]}>
+    <Video
+        { ...this.props }
+        ref={ videoPlayer => this.player.ref = videoPlayer }
 
-                    resizeMode={ this.state.resizeMode }
-                    volume={ this.state.volume }
-                    paused={ this.state.paused }
-                    adUrl={ this.props.adUrl }
-                    muted={ this.state.muted }
-                    rate={ this.state.rate }
+        resizeMode={ this.state.resizeMode }
+        volume={ this.state.volume }
+        paused={ this.state.paused }
+        muted={ this.state.muted }
+        rate={ this.state.rate }
 
-                    onLoadStart={ this.events.onLoadStart }
-                    onProgress={ this.events.onProgress }
-                    onError={ this.events.onError }
-                    onLoad={ this.events.onLoad }
-                    onEnd={ this.events.onEnd }
-                    onPlay={ this.events.onPlay }
-                    onPause={ this.events.onPause }
-                    onAdsLoaded={ this.onAdsLoaded }
-                    onAdStarted={ this.onAdStarted }
-                    onAdsComplete={ this.onAdsComplete }
+        onLoadStart={ this.events.onLoadStart }
+        onProgress={ this.events.onProgress }
+        onError={ this.events.onError }
+        onLoad={ this.events.onLoad }
+        onEnd={ this.events.onEnd }
+        onPlay={ this.events.onPlay }
+        onPause={ this.events.onPause }
 
-                    style={[ styles.player.video, this.styles.videoStyle ]}
+        style={[ styles.player.video, this.styles.videoStyle ]}
 
-                    source={ this.props.source }
-                />
-                { this.renderPoster() }
-                { this.renderError() }
-                { this.renderTopControls() }
-                { this.renderLoader() }
-                { this.renderBottomControls() }
-                { this.renderPlayButton() }
-            </View>
+        source={ this.props.source }
+        />
+        { this.renderPoster() }
+        { this.renderError() }
+        { this.renderTopControls() }
+        { this.renderLoader() }
+        { this.renderBottomControls() }
+        { this.renderPlayButton() }
+    </View>
         </TouchableWithoutFeedback>
     );
     }
@@ -1398,8 +1378,7 @@ const styles = {
             alignSelf: 'stretch',
             alignItems: 'center',
             justifyContent: 'space-between',
-            marginLeft: 6,
-            marginRight: 6,
+            marginHorizontal: 5,
             marginBottom: 0,
         },
         volume: {
@@ -1407,6 +1386,7 @@ const styles = {
         },
         fullscreen: {
             flexDirection: 'row',
+            alignSelf: 'flex-end',
         },
         playPause: {
             position: 'relative',
@@ -1423,6 +1403,17 @@ const styles = {
         titleText: {
             textAlign: 'center',
         },
+        redDot: {
+            backgroundColor: 'red',
+            height: 10,
+            width: 10,
+            borderRadius: 5,
+            marginRight: 3,
+        },
+        liveText: {
+            color: 'red',
+            fontSize: 12,
+        },
         timer: {
             marginRight: -3,
             padding: 0
@@ -1431,7 +1422,6 @@ const styles = {
             backgroundColor: 'transparent',
             color: '#FFF',
             fontSize: 12,
-            textAlign: 'right',
         },
         timerText: {
             backgroundColor: 'transparent',
