@@ -730,7 +730,7 @@ export default class VideoPlayer extends Component {
      * we have to handle possible props changes to state changes
      */
     componentWillReceiveProps(nextProps) {
-        if (this.state.paused !== nextProps.paused ) {
+        if (this.props.paused !== nextProps.paused ) {
             this.setState({
                 paused: nextProps.paused
             })
